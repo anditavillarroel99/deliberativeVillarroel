@@ -11,7 +11,6 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,8 +45,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     }
 
-    private void bfs(State initial_state){
-//    private State bfs(State initial_state){
+//    private void bfs(State initial_state){
+    private State bfs(State initial_state){
 //        List<State> q = new ArrayList<>();
         LinkedList<State> q = new LinkedList<>();
         q.add(initial_state);
@@ -58,8 +57,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             State current_state = q.removeFirst();
 
             if ( current_state.is_final_state() ) {
-//                solution = current_state;
-                System.exit(0);
+                solution = current_state;
+//                System.exit(0);
             }
 
             LinkedList<State> s = new LinkedList<State>( get_next_states(current_state) );
@@ -68,15 +67,24 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
         } while (!q.isEmpty());
 
-//        return  solution;
+        return  solution;
     }
 
 
     public List<State> get_next_states(State initial_state) {
         List<State> next_states = new ArrayList<>();
 
+        for (DeliberativeAction action : initial_state.get_possible_actions()){
+//            Topology.City current_city = initial_state.getCurrent_city();
+            List<Task> list_of_package_to_deliver = new ArrayList<>(initial_state.getList_of_package_to_deliver());
+            list_of_package_to_deliver.remove(action.getTask());
+//            if(action.getPossible_action().equals(ActionStates.DELIVER))
+            next_states.add(State.builder().new_state(action.getDestination_city(), list_of_package_to_deliver).build());
+        }
+
         return next_states;
     }
+
 
     @Override
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
@@ -85,18 +93,28 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         plan = new Plan(vehicle.getCurrentCity());
 //        plan = new Plan(vehicle.getCurrentCity(), null);
 
+//        State.Builder initial_state = null;
+//        initial_state.new_state(vehicle.getCurrentCity(), new ArrayList<>(vehicle.getCurrentTasks()));
+
         // Compute the plan with the selected algorithm.
+        State optimal_state = null;
         switch (algorithm) {
             case ASTAR:
-                // ...
-                plan = naivePlan(vehicle, tasks);
+//                plan = naivePlan(vehicle, tasks);
+                System.out.println(" --------------------------- ");
                 break;
             case BFS:
-                // ...
-                plan = naivePlan(vehicle, tasks);
+//                plan = naivePlan(vehicle, tasks);
+                System.out.println("-> BFS");
+
+                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), new ArrayList<>(vehicle.getCurrentTasks())).build());
                 break;
             default:
                 throw new AssertionError("Should not happen.");
+        }
+
+        if(optimal_state != null) {
+            //backtracking?
         }
         return plan;
     }

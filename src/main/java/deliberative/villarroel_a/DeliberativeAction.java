@@ -1,14 +1,17 @@
 package deliberative.villarroel_a;
 
+import logist.task.Task;
 import logist.topology.Topology;
 
 public class DeliberativeAction {
     private Topology.City destination_city;
     private ActionStates possible_action;
+    private Task task;
 
-    public DeliberativeAction(Topology.City destination_city, ActionStates possible_action) {
+    public DeliberativeAction(Topology.City destination_city, ActionStates possible_action, Task task) {
         this.destination_city = destination_city;
         this.possible_action = possible_action;
+        this.task = task;
     }
 
     public DeliberativeAction(){}
@@ -27,5 +30,13 @@ public class DeliberativeAction {
 
     public void setPossible_action(ActionStates possible_action) {
         this.possible_action = possible_action;
+    }
+
+    public Task getTask() {
+        return task;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
     }
 }
