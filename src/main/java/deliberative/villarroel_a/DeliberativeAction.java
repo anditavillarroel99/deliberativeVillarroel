@@ -4,7 +4,8 @@ import logist.task.Task;
 import logist.topology.Topology;
 
 public class DeliberativeAction {
-    private Topology.City destination_city;
+
+    private Topology.City destination_city;//package_destination
     private ActionStates possible_action;
     private Task task;
 
