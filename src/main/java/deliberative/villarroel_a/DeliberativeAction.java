@@ -15,8 +15,6 @@ public class DeliberativeAction {
         this.task = task;
     }
 
-    public DeliberativeAction(){}
-
     public Topology.City getDestination_city() {
         return destination_city;
     }

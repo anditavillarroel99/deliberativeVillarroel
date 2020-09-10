@@ -46,7 +46,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     }
 
-    //    private void bfs(State initial_state){
     private State bfs(State initial_state) {
         LinkedList<State> q = new LinkedList<>();
         q.add(initial_state);
@@ -58,7 +57,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
             if (current_state.is_final_state()) {
                 solution = current_state;
-//                System.exit(0);
             }
 
             LinkedList<State> successors = new LinkedList<State>(get_next_states(current_state));
@@ -76,64 +74,58 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         List<State> next_states = new ArrayList<>();
 
         for (DeliberativeAction action : initial_state.get_possible_actions()) {
-//            next_states.add(State.builder().new_state(action.getDestination_city(), list_of_package_to_deliver, null, false, 0).build()); TODO -> Crear funcion sucesora?
             next_states.add(next_state(initial_state, action));
         }
 
         return next_states;
     }
 
-    private State next_state(State initial_state, DeliberativeAction action){
-//        List<Task> list_of_package_to_deliver = initial_state.getList_of_package_to_deliver();
+    private State next_state(State initial_state, DeliberativeAction action) {
 //        Set<Task> delivery_list = initial_state.getDelivery_list();
         TaskSet delivery_list = initial_state.getDelivery_list();
         TaskSet pickup_list = initial_state.getPickup_list();
 
         List<DeliberativeAction> historial = initial_state.getList_of_visited_nodes();
 
-        if(action.getPossible_action().equals(ActionStates.DELIVER)){
+        if (action.getPossible_action().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
-        }else{ //Recoger Paquete?
+
+        } else { //Recoger Paquete?
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
-        }
 
+        }
         historial.add(action);
-        //TODO: -> peso de un paquete
-        return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list , historial, initial_state.isApplicable(), initial_state.getVehicle_capacity()).build());
+        //TODO: -> peso de un paquete?
+        return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, historial, initial_state.isApplicable(), initial_state.getVehicle_capacity()).build());
     }
 
     private Plan get_plan(State state, Topology.City current_city) {
-//    private Plan get_plan(State state) {
-//        Topology.City current_city = state.getCurrent_city();
+
         Plan plan = new Plan(current_city);
 
-        for(DeliberativeAction action : state.getList_of_visited_nodes()) {
-//            for (Topology.City city : current_city.pathTo(action.getTask().pickupCity)){
-//                plan.appendMove(city);
-//            }
+        for (DeliberativeAction action : state.getList_of_visited_nodes()) {
+
             for (Topology.City city : current_city.pathTo(action.getDestination_city())) {
                 plan.appendMove(city);
             }
 
-
-            if(action.getPossible_action().equals(ActionStates.DELIVER)){
+            if (action.getPossible_action().equals(ActionStates.DELIVER)) {
                 plan.appendDelivery(action.getTask());
-            }else { //PICKUP
+            } else { // PICKUP
                 plan.appendPickup(action.getTask());
             }
 
             current_city = action.getDestination_city();
 
         }
+
         return plan;
     }
 
     @Override
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
-
-//        State.Builder initial_state = null;
 
         // Compute the plan with the selected algorithm.
         State optimal_state = null;
@@ -143,18 +135,15 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
                 System.out.println(" --------------------------- ");
                 break;
             case BFS:
-//                plan = naivePlan(vehicle, tasks);
+
                 System.out.println("-> BFS");
-//                vehicle.getCurrentTasks()-> TAREAS TOMADAS? NO ENTREGADAS?
-                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks ,new ArrayList<>(), true, vehicle.capacity()).build());
-//                plan = get_plan(optimal_state);
+                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), true, vehicle.capacity()).build());
                 plan = get_plan(optimal_state, vehicle.getCurrentCity());
 
                 break;
             default:
                 throw new AssertionError("Should not happen.");
         }
-
 
         return plan;
     }
