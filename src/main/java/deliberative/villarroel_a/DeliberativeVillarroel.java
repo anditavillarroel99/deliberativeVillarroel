@@ -16,7 +16,7 @@ import java.util.List;
 
 public class DeliberativeVillarroel implements DeliberativeBehavior {
 
-    enum Algorithm { BFS, ASTAR }
+    enum Algorithm {BFS, ASTAR}
 
     /* Environment */
     Topology topology;
@@ -45,9 +45,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     }
 
-//    private void bfs(State initial_state){
-    private State bfs(State initial_state){
-//        List<State> q = new ArrayList<>();
+    //    private void bfs(State initial_state){
+    private State bfs(State initial_state) {
         LinkedList<State> q = new LinkedList<>();
         q.add(initial_state);
 
@@ -56,35 +55,50 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         do {
             State current_state = q.removeFirst();
 
-            if ( current_state.is_final_state() ) {
+            if (current_state.is_final_state()) {
                 solution = current_state;
 //                System.exit(0);
             }
 
-            LinkedList<State> s = new LinkedList<State>( get_next_states(current_state) );
+            LinkedList<State> successors = new LinkedList<State>(get_next_states(current_state));
 
-            q.addAll(s);
+            q.addAll(successors);
 
         } while (!q.isEmpty());
 
-        return  solution;
+
+        return solution;
     }
 
 
     public List<State> get_next_states(State initial_state) {
         List<State> next_states = new ArrayList<>();
+        Topology.City current_city = initial_state.getCurrent_city();
 
-        for (DeliberativeAction action : initial_state.get_possible_actions()){
-//            Topology.City current_city = initial_state.getCurrent_city();
+        for (DeliberativeAction action : initial_state.get_possible_actions()) {
             List<Task> list_of_package_to_deliver = new ArrayList<>(initial_state.getList_of_package_to_deliver());
+//             if(action.getPossible_action().equals(ActionStates.DELIVER)) {
+//            TODO -> verificar el tipo de accion
+//                    Crear funcion sucesora?
+
             list_of_package_to_deliver.remove(action.getTask());
-//            if(action.getPossible_action().equals(ActionStates.DELIVER))
-            next_states.add(State.builder().new_state(action.getDestination_city(), list_of_package_to_deliver).build());
+            next_states.add(State.builder().new_state(action.getDestination_city(), list_of_package_to_deliver, null, false, 0).build());
         }
 
         return next_states;
     }
 
+    private Plan get_plan(State state) {
+        Topology.City current_city = state.getCurrent_city();
+        Plan plan = new Plan(current_city);
+
+        for(DeliberativeAction action : state.getList_of_visited_nodes()) {
+            Task  task = action.getTask();
+
+//            TODO:  backtracking o revisar historial?
+        }
+        return plan;
+    }
 
     @Override
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
@@ -107,14 +121,15 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 //                plan = naivePlan(vehicle, tasks);
                 System.out.println("-> BFS");
 
-                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), new ArrayList<>(vehicle.getCurrentTasks())).build());
+                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), new ArrayList<>(vehicle.getCurrentTasks()), null, false, vehicle.capacity()).build());
+
                 break;
             default:
                 throw new AssertionError("Should not happen.");
         }
 
-        if(optimal_state != null) {
-            //backtracking?
+        if(optimal_state != null ){
+//      Obtener plan de estados?
         }
         return plan;
     }

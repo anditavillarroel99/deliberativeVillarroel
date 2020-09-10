@@ -11,49 +11,54 @@ public class State {
 //    private Topology.City package_destination;
 
     private List<Task> list_of_package_to_deliver;
-    private List<Task> list_of_available_tasks;
+    private List<DeliberativeAction>  list_of_visited_nodes; // historial?
 
-    private List<DeliberativeAction> possible_action_list;
+    private boolean applicable ; // Verificar si el estado es optimo o accesible
 
-    //    public State(Topology.City current_city,Topology.City package_destination , List<Task> list_of_package_to_deliver, List<Task> list_of_available_tasks ) {
-    public State(Topology.City current_city, List<Task> list_of_package_to_deliver, List<Task> list_of_available_tasks) {
+    private double vehicle_capacity ; // capacidad maxima que el vehiculo pueda soportar
+
+    public State(Topology.City current_city, List<Task> list_of_package_to_deliver, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
         this.current_city = current_city;
-//        this.package_destination = package_destination;
-        this.list_of_package_to_deliver = new ArrayList<>(list_of_package_to_deliver);
-//        this.list_of_available_tasks = new ArrayList<>(list_of_available_tasks);
-
+        this.list_of_package_to_deliver = list_of_package_to_deliver;
+        this.list_of_visited_nodes = list_of_visited_nodes;
+        this.applicable = applicable;
+        this.vehicle_capacity = vehicle_capacity;
     }
 
-    public State() {
-    }
+    public State() {}
 
     public Topology.City getCurrent_city() {
         return current_city;
     }
 
-//    public Topology.City getPackage_destination() {
-//        return package_destination;
-//    }
-
     public List<Task> getList_of_package_to_deliver() {
         return list_of_package_to_deliver;
     }
 
-//    public List<Task> getList_of_available_tasks() {
-//        return list_of_available_tasks;
-//    }
+    public List<DeliberativeAction> getList_of_visited_nodes() {
+        return list_of_visited_nodes;
+    }
+
+    public boolean isApplicable() {
+        return applicable;
+    }
+
+    public double getVehicle_capacity() {
+        return vehicle_capacity;
+    }
 
     public boolean is_final_state() {
         return list_of_package_to_deliver.isEmpty();
     }
 
     public List<DeliberativeAction> get_possible_actions() {
-        possible_action_list = new ArrayList<>();
+        List<DeliberativeAction> possible_action_list = new ArrayList<>();
 
         for (Task task : list_of_package_to_deliver) {
             possible_action_list.add(new DeliberativeAction(task.deliveryCity, ActionStates.DELIVER, task));
-//            possible_action_list.add(new DeliberativeAction(task.deliveryCity, ActionStates.DELIVER));
         }
+        //TODO debe entregar todos los paquetes posibles
+        // -> ver capacidad del vehiculo
 
         return possible_action_list;
     }
@@ -64,28 +69,30 @@ public class State {
                 "current_city=" + current_city +
 //                ", package_destination=" + package_destination +
                 ", list_of_package_to_deliver=" + list_of_package_to_deliver +
-                ", list_of_available_tasks=" + list_of_available_tasks +
+                ", list_of_visited_nodes=" + list_of_visited_nodes +
+                ", applicable=" + applicable +
+                ", vehicle_capacity=" + vehicle_capacity +
                 '}';
     }
 
-
-
-    //    public void setPackage_destination(Topology.City package_destination) {
-//        this.package_destination = package_destination;
-//    }
-    public static Builder builder() {  return new Builder(); }
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static class Builder {
         private final State state;
 
-        private Builder(){
+        private Builder() {
             state = new State();
         }
 
-//        public Builder new_state(Topology.City current_city, List<Task> list_of_package_to_deliver, List<Task> list_of_available_tasks) {
-        public Builder new_state(Topology.City current_city, List<Task> list_of_package_to_deliver) {
+        public Builder new_state(Topology.City current_city, List<Task> list_of_package_to_deliver, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
             state.current_city = current_city;
             state.list_of_package_to_deliver = list_of_package_to_deliver;
+            state.list_of_visited_nodes = list_of_visited_nodes;
+            state.applicable = applicable;
+            state.vehicle_capacity = vehicle_capacity;
+
             return this;
         }
 

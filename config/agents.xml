@@ -9,5 +9,10 @@
 		<set class-name="deliberative.template.DeliberativeTemplate"/>
 		<set algorithm="BFS"/>
 	</agent>
+	<agent name="deliberative-villarroel">
+		<set class-path="build/classes/java/main/deliberative/villarroel_a"/>
+		<set class-name="deliberative.villarroel_a.DeliberativeVillarroel"/>
+		<set algorithm="BFS"/>
+	</agent>
 	
 </agents>
