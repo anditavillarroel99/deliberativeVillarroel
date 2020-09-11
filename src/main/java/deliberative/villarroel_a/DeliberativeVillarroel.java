@@ -64,7 +64,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
         } while (!q.isEmpty());
 
-
         return solution;
     }
 
@@ -73,16 +72,16 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         List<State> next_states = new ArrayList<>();
 
         for (DeliberativeAction action : initial_state.get_possible_actions()) {
-            next_states.add(next_state(initial_state, action));
+            next_states.add(get_next_state(initial_state, action));
         }
 
         return next_states;
     }
 
-    private State next_state(State initial_state, DeliberativeAction action) {
-//        Set<Task> delivery_list = initial_state.getDelivery_list();
+    private State get_next_state(State initial_state, DeliberativeAction action) {
         TaskSet delivery_list = initial_state.getDelivery_list();
         TaskSet pickup_list = initial_state.getPickup_list();
+        
         double capacity = initial_state.getVehicle_capacity();
 
         List<DeliberativeAction> historial = initial_state.getList_of_visited_nodes();
@@ -90,16 +89,14 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         if (action.getPossible_action().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
             capacity = capacity + action.getTask().weight;
-            historial.add(action);
 
         } else { //Recoger Paquete?
-            if( capacity >= action.getTask().weight ) {
-                delivery_list.add(action.getTask());
-                pickup_list.remove(action.getTask());
-                capacity = capacity - action.getTask().weight;
-                historial.add(action);
-            }
+            delivery_list.add(action.getTask());
+            pickup_list.remove(action.getTask());
+            capacity = capacity - action.getTask().weight;
         }
+
+        historial.add(action);
 
         return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, historial, initial_state.isApplicable(), capacity).build());
     }

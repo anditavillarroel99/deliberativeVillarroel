@@ -4,32 +4,19 @@ import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class State {
     private Topology.City current_city;
 
-//    private Set<Task> delivery_list;
     private TaskSet delivery_list;
     private TaskSet pickup_list;
 
-    private List<DeliberativeAction> list_of_visited_nodes; // historial?
+    private List<DeliberativeAction> list_of_visited_nodes;  // historial?
 
     private boolean applicable; // Verificar si el estado es optimo o accesible
 
     private double vehicle_capacity; // capacidad maxima del vehiculo?
-
-    //    public State(Topology.City current_city, Set<Task> delivery_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
-    public State(Topology.City current_city, TaskSet delivery_list, TaskSet pickup_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
-        this.current_city = current_city;
-        this.delivery_list = delivery_list;
-        this.pickup_list = pickup_list;
-        this.list_of_visited_nodes = list_of_visited_nodes;
-        this.applicable = applicable;
-        this.vehicle_capacity = vehicle_capacity;
-    }
 
     public State() {
     }
@@ -41,10 +28,6 @@ public class State {
     public List<DeliberativeAction> getList_of_visited_nodes() {
         return list_of_visited_nodes;
     }
-
-//    public Set<Task> getDelivery_list() {
-//        return delivery_list;
-//    }
 
     public TaskSet getDelivery_list() {
         return delivery_list;
@@ -72,15 +55,45 @@ public class State {
         for (Task task : delivery_list) {
             possible_action_list.add(new DeliberativeAction(task.deliveryCity, ActionStates.DELIVER, task));
         }
-//        if (applicable) {
-            //TODO debe entregar todos los paquetes posibles
-            // -> ver capacidad del vehiculo
-            for (Task task : pickup_list) {
+
+        for (Task task : pickup_list) {
+//            if (is_possible_to_pickup()) {
+            if (task.weight <= getVehicle_capacity()) {
                 possible_action_list.add(new DeliberativeAction(task.pickupCity, ActionStates.PICKUP, task));
             }
-//        }
-
+        }
         return possible_action_list;
+    }
+
+    public boolean is_possible_to_pickup() {
+        return (delivery_list.weightSum() <= getVehicle_capacity());
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final State state;
+
+        public Builder() {
+            state = new State();
+        }
+
+        public Builder new_state(Topology.City current_city, TaskSet delivery_list, TaskSet pickup_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
+            state.current_city = current_city;
+            state.delivery_list = delivery_list.clone();
+            state.pickup_list = pickup_list.clone();
+            state.list_of_visited_nodes = new ArrayList<>(list_of_visited_nodes);
+            state.applicable = applicable;
+            state.vehicle_capacity = vehicle_capacity;
+            return this;
+        }
+
+        public State build() {
+            return state;
+        }
+
     }
 
     @Override
@@ -93,37 +106,6 @@ public class State {
                 ", applicable=" + applicable +
                 ", vehicle_capacity=" + vehicle_capacity +
                 '}';
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private final State state;
-
-        private Builder() {
-            state = new State();
-        }
-
-        //        public Builder new_state(Topology.City current_city, Set<Task> delivery_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
-        public Builder new_state(Topology.City current_city, TaskSet delivery_list, TaskSet pickup_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
-            state.current_city = current_city;
-//            state.list_of_package_to_deliver = list_of_package_to_deliver;
-            state.delivery_list = delivery_list;
-            state.pickup_list = pickup_list;
-            state.list_of_visited_nodes = list_of_visited_nodes;
-            state.applicable = applicable;
-            state.vehicle_capacity = vehicle_capacity;
-
-            return this;
-        }
-
-        public State build() {
-            return state;
-        }
-
-
     }
 
 }

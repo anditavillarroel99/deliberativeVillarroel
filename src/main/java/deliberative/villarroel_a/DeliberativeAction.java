@@ -38,4 +38,13 @@ public class DeliberativeAction {
     public void setTask(Task task) {
         this.task = task;
     }
+
+    @Override
+    public String toString() {
+        return "DeliberativeAction{" +
+                "destination_city=" + destination_city +
+                ", possible_action=" + possible_action +
+                ", task=" + task +
+                '}';
+    }
 }
