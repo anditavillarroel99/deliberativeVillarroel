@@ -1,6 +1,5 @@
 package deliberative.villarroel_a;
 
-import deliberative.template.DeliberativeTemplate;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
 import logist.plan.Plan;
@@ -84,20 +83,25 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 //        Set<Task> delivery_list = initial_state.getDelivery_list();
         TaskSet delivery_list = initial_state.getDelivery_list();
         TaskSet pickup_list = initial_state.getPickup_list();
+        double capacity = initial_state.getVehicle_capacity();
 
         List<DeliberativeAction> historial = initial_state.getList_of_visited_nodes();
 
         if (action.getPossible_action().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
+            capacity = capacity + action.getTask().weight;
+            historial.add(action);
 
         } else { //Recoger Paquete?
-            delivery_list.add(action.getTask());
-            pickup_list.remove(action.getTask());
-
+            if( capacity >= action.getTask().weight ) {
+                delivery_list.add(action.getTask());
+                pickup_list.remove(action.getTask());
+                capacity = capacity - action.getTask().weight;
+                historial.add(action);
+            }
         }
-        historial.add(action);
-        //TODO: -> peso de un paquete?
-        return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, historial, initial_state.isApplicable(), initial_state.getVehicle_capacity()).build());
+
+        return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, historial, initial_state.isApplicable(), capacity).build());
     }
 
     private Plan get_plan(State state, Topology.City current_city) {
@@ -131,6 +135,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         State optimal_state = null;
         switch (algorithm) {
             case ASTAR:
+                System.out.println("-> BFS");
+
                 plan = naivePlan(vehicle, tasks);
                 System.out.println(" --------------------------- ");
                 break;

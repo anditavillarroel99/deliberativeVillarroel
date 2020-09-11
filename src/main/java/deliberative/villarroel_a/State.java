@@ -10,10 +10,11 @@ import java.util.Set;
 
 public class State {
     private Topology.City current_city;
-//    private Set<Task> delivery_list;
 
+//    private Set<Task> delivery_list;
     private TaskSet delivery_list;
-    private TaskSet pickup_list; //?
+    private TaskSet pickup_list;
+
     private List<DeliberativeAction> list_of_visited_nodes; // historial?
 
     private boolean applicable; // Verificar si el estado es optimo o accesible
@@ -70,17 +71,14 @@ public class State {
 
         for (Task task : delivery_list) {
             possible_action_list.add(new DeliberativeAction(task.deliveryCity, ActionStates.DELIVER, task));
-
         }
-        if (applicable) {
-
+//        if (applicable) {
             //TODO debe entregar todos los paquetes posibles
             // -> ver capacidad del vehiculo
-
             for (Task task : pickup_list) {
                 possible_action_list.add(new DeliberativeAction(task.pickupCity, ActionStates.PICKUP, task));
             }
-        }
+//        }
 
         return possible_action_list;
     }
