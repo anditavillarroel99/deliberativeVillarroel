@@ -12,11 +12,11 @@ public class State {
     private TaskSet delivery_list;
     private TaskSet pickup_list;
 
-    private List<DeliberativeAction> list_of_visited_nodes;  // historial?
+    private List<DeliberativeAction> list_of_visited_nodes;
 
-    private boolean applicable; // Verificar si el estado es optimo o accesible
+    private double vehicle_capacity;
 
-    private double vehicle_capacity; // capacidad maxima del vehiculo?
+    private double heuristic;
 
     public State() {
     }
@@ -37,10 +37,6 @@ public class State {
         return pickup_list;
     }
 
-    public boolean isApplicable() {
-        return applicable;
-    }
-
     public double getVehicle_capacity() {
         return vehicle_capacity;
     }
@@ -57,11 +53,11 @@ public class State {
         }
 
         for (Task task : pickup_list) {
-//            if (is_possible_to_pickup()) {
             if (task.weight <= getVehicle_capacity()) {
                 possible_action_list.add(new DeliberativeAction(task.pickupCity, ActionStates.PICKUP, task));
             }
         }
+
         return possible_action_list;
     }
 
@@ -73,6 +69,10 @@ public class State {
         return new Builder();
     }
 
+    public double getHeuristic() {
+        return heuristic;
+    }
+
     public static class Builder {
         private final State state;
 
@@ -80,13 +80,14 @@ public class State {
             state = new State();
         }
 
-        public Builder new_state(Topology.City current_city, TaskSet delivery_list, TaskSet pickup_list, List<DeliberativeAction> list_of_visited_nodes, boolean applicable, double vehicle_capacity) {
+        public Builder new_state(Topology.City current_city, TaskSet delivery_list, TaskSet pickup_list, List<DeliberativeAction> list_of_visited_nodes, double vehicle_capacity, double heuristic) {
             state.current_city = current_city;
             state.delivery_list = delivery_list.clone();
             state.pickup_list = pickup_list.clone();
             state.list_of_visited_nodes = new ArrayList<>(list_of_visited_nodes);
-            state.applicable = applicable;
             state.vehicle_capacity = vehicle_capacity;
+            state.heuristic = heuristic;
+
             return this;
         }
 
@@ -103,7 +104,6 @@ public class State {
                 ", delivery_list=" + delivery_list +
                 ", pickup_list=" + pickup_list +
                 ", list_of_visited_nodes=" + list_of_visited_nodes +
-                ", applicable=" + applicable +
                 ", vehicle_capacity=" + vehicle_capacity +
                 '}';
     }
