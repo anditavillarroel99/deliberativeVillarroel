@@ -5,13 +5,13 @@ import logist.topology.Topology;
 
 public class DeliberativeAction {
 
-    private Topology.City destination_city;//package_destination
-    private ActionStates possible_action;
-    private Task task;
+    private final Topology.City destination_city;
+    private final ActionStates action;
+    private final Task task;
 
-    public DeliberativeAction(Topology.City destination_city, ActionStates possible_action, Task task) {
+    public DeliberativeAction(Topology.City destination_city, ActionStates action, Task task) {
         this.destination_city = destination_city;
-        this.possible_action = possible_action;
+        this.action = action;
         this.task = task;
     }
 
@@ -19,31 +19,19 @@ public class DeliberativeAction {
         return destination_city;
     }
 
-    public void setDestination_city(Topology.City destination_city) {
-        this.destination_city = destination_city;
-    }
-
-    public ActionStates getPossible_action() {
-        return possible_action;
-    }
-
-    public void setPossible_action(ActionStates possible_action) {
-        this.possible_action = possible_action;
+    public ActionStates getAction() {
+        return action;
     }
 
     public Task getTask() {
         return task;
     }
 
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
     @Override
     public String toString() {
         return "DeliberativeAction{" +
                 "destination_city=" + destination_city +
-                ", possible_action=" + possible_action +
+                ", action=" + action +
                 ", task=" + task +
                 '}';
     }

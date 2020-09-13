@@ -7,6 +7,7 @@ import logist.topology.Topology;
 import java.util.*;
 
 public class State {
+
     private Topology.City current_city;
 
     private TaskSet delivery_list;
@@ -15,11 +16,9 @@ public class State {
     private List<DeliberativeAction> list_of_visited_nodes;
 
     private double vehicle_capacity;
-
     private double heuristic;
 
-    public State() {
-    }
+    public State() {}
 
     public Topology.City getCurrent_city() {
         return current_city;
@@ -59,10 +58,6 @@ public class State {
         }
 
         return possible_action_list;
-    }
-
-    public boolean is_possible_to_pickup() {
-        return (delivery_list.weightSum() <= getVehicle_capacity());
     }
 
     public static Builder builder() {
@@ -105,7 +100,7 @@ public class State {
                 ", pickup_list=" + pickup_list +
                 ", list_of_visited_nodes=" + list_of_visited_nodes +
                 ", vehicle_capacity=" + vehicle_capacity +
+                ", heuristic=" + heuristic +
                 '}';
     }
-
 }
