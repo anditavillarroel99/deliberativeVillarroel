@@ -4,7 +4,6 @@ import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
-import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
@@ -51,9 +50,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         State bestChoice = null;
 
         do {
-//            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic() + s1.getList_of_visited_nodes().size(), s2.getHeuristic() + s2.getList_of_visited_nodes().size()));
 //            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(State::getHeuristic));
-
             Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + s.getList_of_visited_nodes().size()));
 
             if (optionalState.isPresent()) {
@@ -143,7 +140,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         }
 
         historial.add(action);
-        double heuristic = initial_state.getHeuristic() - (initial_state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());
+        double heuristic = initial_state.getHeuristic() + (initial_state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());
 
         return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, historial, capacity, heuristic).build());
     }
