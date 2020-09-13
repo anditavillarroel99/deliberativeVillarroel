@@ -51,12 +51,15 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         State bestChoice = null;
 
         do {
-//            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic(), s2.getHeuristic()));
-            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(State::getHeuristic));
+//            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic() + s1.getList_of_visited_nodes().size(), s2.getHeuristic() + s2.getList_of_visited_nodes().size()));
+//            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(State::getHeuristic));
+
+            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + s.getList_of_visited_nodes().size()));
 
             if (optionalState.isPresent()) {
                 State current_state = optionalState.get();
                 seen.add(current_state);
+
                 q.remove(current_state);
 
                 if (current_state.is_final_state()) {
@@ -89,9 +92,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             }
 
             seen.add(best_choice);
-//            LinkedList<State> successors = get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toCollection(LinkedList::new));
-            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
 
+            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
             q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
 
         } while (!q.isEmpty() && best_choice == null);
