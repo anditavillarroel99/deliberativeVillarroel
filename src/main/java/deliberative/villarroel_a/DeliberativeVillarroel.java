@@ -10,6 +10,7 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DeliberativeVillarroel implements DeliberativeBehavior {
 
@@ -44,37 +45,53 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     private State a_star(State initial_state) {
         LinkedList<State> q = new LinkedList<>(); // frontera
+        HashSet<State> seen = new HashSet<>();
+
         q.add(initial_state);
+        State bestChoice = null;
 
-        Optional<State> bestChoice = Optional.empty();
+        while (!q.isEmpty()) {
 
-        while (!q.isEmpty() && bestChoice.isEmpty()) {
-//            bestChoice = q.stream().min(Comparator.comparingInt(State::h1));
-           bestChoice = q.stream().min((s1,s2) -> Double.compare(s1.getHeuristic(), s2.getHeuristic()));
+            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic(), s2.getHeuristic()));
+//            if (bestChoice == null) {
+//                throw new IllegalStateException("Unexpectedly no state left ");
+//            }
+            seen.add(optionalState.get());
+            q.remove(optionalState.get());
+
+            if (optionalState.get().is_final_state()) {
+                bestChoice = optionalState.get();
+            }
+
+            q.addAll(get_next_states(optionalState.get()).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList())); // Expandir a los hijos
         }
-        return bestChoice.get();
+
+        return bestChoice;
     }
 
     private State bfs(State initial_state) {
         LinkedList<State> q = new LinkedList<>();
+        HashSet<State> seen = new HashSet<>();
+
         q.add(initial_state);
 
-        State solution = null;
+        State best_choice = null;
 
         do {
             State current_state = q.removeFirst();
 
             if (current_state.is_final_state()) {
-                solution = current_state;
+                best_choice = current_state;
             }
 
-            LinkedList<State> successors = new LinkedList<State>(get_next_states(current_state));
+            seen.add(best_choice);
+            LinkedList<State> successors = get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toCollection(LinkedList::new));
 
             q.addAll(successors);
 
         } while (!q.isEmpty());
 
-        return solution;
+        return best_choice;
     }
 
 
@@ -82,7 +99,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         List<State> next_states = new ArrayList<>();
 
         for (DeliberativeAction action : initial_state.get_possible_actions()) {
-                next_states.add(get_next_state(initial_state, action));
+            next_states.add(get_next_state(initial_state, action));
         }
 
         return next_states;
@@ -93,7 +110,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         DeliberativeAction new_action = null;
 
         for (DeliberativeAction deliberativeAction : initial_state.get_possible_actions()) {
-            if(!action.equals(deliberativeAction) && deliberativeAction.getDestination_city().equals(city) ){
+            if (!action.equals(deliberativeAction) && deliberativeAction.getDestination_city().equals(city)) {
                 new_action = deliberativeAction;
             }
         }
@@ -156,7 +173,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         switch (algorithm) {
             case ASTAR:
                 System.out.println("-> ASTAR");
-                optimal_state = a_star(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(),0).build());
+                optimal_state = a_star(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(), 0).build());
                 plan = get_plan(optimal_state, vehicle.getCurrentCity());
                 break;
             case BFS:
