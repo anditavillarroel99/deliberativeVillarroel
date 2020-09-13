@@ -50,21 +50,25 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         q.add(initial_state);
         State bestChoice = null;
 
-        while (!q.isEmpty()) {
+        do {
+//            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic(), s2.getHeuristic()));
+            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(State::getHeuristic));
 
-            Optional<State> optionalState = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic(), s2.getHeuristic()));
-//            if (bestChoice == null) {
-//                throw new IllegalStateException("Unexpectedly no state left ");
-//            }
-            seen.add(optionalState.get());
-            q.remove(optionalState.get());
+            if (optionalState.isPresent()) {
+                State current_state = optionalState.get();
+                seen.add(current_state);
+                q.remove(current_state);
 
-            if (optionalState.get().is_final_state()) {
-                bestChoice = optionalState.get();
+                if (current_state.is_final_state()) {
+                    bestChoice = current_state;
+                }
+
+                q.addAll(get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList())); // Expandir a los hijos
+
+            } else {
+                throw new IllegalStateException("Unexpectedly, no state remains");
             }
-
-            q.addAll(get_next_states(optionalState.get()).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList())); // Expandir a los hijos
-        }
+        } while (!q.isEmpty() && bestChoice == null);
 
         return bestChoice;
     }
@@ -85,11 +89,12 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             }
 
             seen.add(best_choice);
-            LinkedList<State> successors = get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toCollection(LinkedList::new));
+//            LinkedList<State> successors = get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toCollection(LinkedList::new));
+            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
 
-            q.addAll(successors);
+            q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
 
-        } while (!q.isEmpty());
+        } while (!q.isEmpty() && best_choice == null);
 
         return best_choice;
     }
