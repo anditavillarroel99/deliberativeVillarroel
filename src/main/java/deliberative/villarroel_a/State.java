@@ -18,7 +18,12 @@ public class State {
     private double vehicle_capacity;
     private double heuristic;
 
-    public State() {}
+    public State() {
+        this.delivery_list = null;
+        this.pickup_list = null;
+        this.list_of_visited_nodes = new ArrayList<>();
+    }
+
 
     public Topology.City getCurrent_city() {
         return current_city;
@@ -103,4 +108,76 @@ public class State {
                 ", heuristic=" + heuristic +
                 '}';
     }
+
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        State state = (State) o;
+//        return state.getCurrent_city() == this.current_city
+//                && state.getDelivery_list() == this.delivery_list
+//                && state.getPickup_list() == this.pickup_list
+//                && state.getList_of_visited_nodes() == this.list_of_visited_nodes
+//                && state.getVehicle_capacity() == this.vehicle_capacity
+//                && state.getHeuristic() == this.heuristic;
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(current_city, delivery_list, pickup_list, list_of_visited_nodes, vehicle_capacity, heuristic);
+//    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        State state = (State) o;
+//        return state.getCurrent_city() == this.current_city
+//                && state.getDelivery_list() == this.delivery_list
+//                && state.getPickup_list() == this.pickup_list
+//                && state.getList_of_visited_nodes() == this.list_of_visited_nodes
+//                && state.getVehicle_capacity() == this.vehicle_capacity
+//                && state.getHeuristic() == this.heuristic;
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(current_city, delivery_list, pickup_list, list_of_visited_nodes, vehicle_capacity, heuristic);
+//    }
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        State state = (State) o;
+//        return Double.compare(state.vehicle_capacity, vehicle_capacity) == 0 &&
+//                Double.compare(state.heuristic, heuristic) == 0 &&
+//                current_city.equals(state.current_city) &&
+//                delivery_list.equals(state.delivery_list) &&
+//                pickup_list.equals(state.pickup_list) &&
+//                list_of_visited_nodes.equals(state.list_of_visited_nodes);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(current_city, delivery_list, pickup_list, list_of_visited_nodes, vehicle_capacity, heuristic);
+//    }
+
+
+    //    @Override
+//    public boolean equals(Object o) {
+//        if(o instanceof State) {
+//            State oState = (State) o;
+//            return oState.getList_of_visited_nodes().equals(list_of_visited_nodes)  &&
+//                    oState.getCurrent_city().equals(current_city);
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(delivery_list, pickup_list, current_city);
+//    }
 }

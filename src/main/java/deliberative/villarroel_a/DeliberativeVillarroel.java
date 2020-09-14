@@ -44,9 +44,11 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     private State a_star(State initial_state) {
         LinkedList<State> q = new LinkedList<>();
-        HashSet<State> seen = new HashSet<>();
-
         q.add(initial_state);
+
+        HashSet<State> seen = new HashSet<State>();
+
+        State current_state;
         State bestChoice = null;
 
         do {
@@ -54,16 +56,16 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + s.getList_of_visited_nodes().size()));
 
             if (optionalState.isPresent()) {
-                State current_state = optionalState.get();
-                seen.add(current_state);
-
-                q.remove(current_state);
+                current_state = optionalState.get();
 
                 if (current_state.is_final_state()) {
                     bestChoice = current_state;
                 }
 
-                q.addAll(get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList())); // Expandir a los hijos
+                seen.add(current_state);
+                q.remove(current_state);
+                LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
+                q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
 
             } else {
                 throw new IllegalStateException("Unexpectedly, no state remains");
@@ -87,7 +89,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             if (current_state.is_final_state()) {
                 best_choice = current_state;
             }
-
             seen.add(best_choice);
 
             LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
@@ -109,18 +110,17 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         return next_states;
     }
 
-    private State get_next_state(State initial_state, DeliberativeAction action) {
-        TaskSet delivery_list = initial_state.getDelivery_list();
-        TaskSet pickup_list = initial_state.getPickup_list();
+    private State get_next_state(State state, DeliberativeAction action) {
 
-        double capacity = initial_state.getVehicle_capacity();
+        TaskSet delivery_list = state.getDelivery_list();
+        TaskSet pickup_list = state.getPickup_list();
 
-        List<DeliberativeAction> list_of_visited_nodes = initial_state.getList_of_visited_nodes();
+        double capacity = state.getVehicle_capacity();
+        List<DeliberativeAction> list_of_visited_nodes = state.getList_of_visited_nodes();
 
         if (action.getAction().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
             capacity = capacity + action.getTask().weight;
-
         } else { //PICKUP
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
@@ -128,14 +128,16 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         }
 
         list_of_visited_nodes.add(action);
+        double heuristic = state.getHeuristic() + state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm() ;//+ action.getTask().reward;
 
-        double heuristic = initial_state.getHeuristic() + (initial_state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());
         return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, list_of_visited_nodes, capacity, heuristic).build());
     }
 
-    private Plan get_plan(State state, Topology.City current_city) {
+    private Plan get_plan(State state, Vehicle vehicle) {
 
-        Plan plan = new Plan(current_city);
+        Plan plan = new Plan(vehicle.getCurrentCity());
+
+        Topology.City current_city = vehicle.getCurrentCity();
 
         for (DeliberativeAction action : state.getList_of_visited_nodes()) {
 
@@ -143,13 +145,13 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
                 plan.appendMove(city);
             }
 
+            current_city = action.getDestination_city();
+
             if (action.getAction().equals(ActionStates.DELIVER)) {
                 plan.appendDelivery(action.getTask());
             } else { // PICKUP
                 plan.appendPickup(action.getTask());
             }
-
-            current_city = action.getDestination_city();
         }
 
         return plan;
@@ -158,6 +160,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
     @Override
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
+        System.out.println("->VA-> Computing for " + vehicle.name() + " " + tasks);
 
         // Compute the plan with the selected algorithm.
         State optimal_state = null;
@@ -165,13 +168,16 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             case ASTAR:
                 System.out.println("-> ASTAR");
                 optimal_state = a_star(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(), 0).build());
-                plan = get_plan(optimal_state, vehicle.getCurrentCity());
+//                System.out.println(optimal_state);
+                System.out.println(optimal_state.toString() + "->>>> SIZE: " + optimal_state.getList_of_visited_nodes().size());
+
+                plan = get_plan(optimal_state, vehicle);
 
                 break;
             case BFS:
                 System.out.println("-> BFS");
                 optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(), 0).build());
-                plan = get_plan(optimal_state, vehicle.getCurrentCity());
+                plan = get_plan(optimal_state, vehicle);
 
                 break;
             default:
