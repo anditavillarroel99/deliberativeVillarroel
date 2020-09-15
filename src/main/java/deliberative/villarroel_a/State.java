@@ -85,7 +85,6 @@ public class State {
             state.vehicle_capacity = vehicle_capacity;
             state.heuristic = heuristic;
 
-            state.get_possible_actions();
             return this;
         }
 
@@ -125,9 +124,10 @@ public class State {
         return Objects.hash(current_city, delivery_list, pickup_list, list_of_visited_nodes, vehicle_capacity, heuristic);
     }
 
-    public boolean is_the_same_node(State state) {
-        return current_city.equals(state.getCurrent_city())
-                && list_of_visited_nodes.equals(state.getList_of_visited_nodes());
+    public boolean is_equivalent(State state) {
+        return state.getList_of_visited_nodes().size() == list_of_visited_nodes.size() &&
+                new HashSet<>(state.getList_of_visited_nodes()).equals(new HashSet<>(list_of_visited_nodes))
+                && state.getCurrent_city().equals(current_city);
     }
 }
 

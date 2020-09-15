@@ -10,7 +10,6 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DeliberativeVillarroel implements DeliberativeBehavior {
 
@@ -52,7 +51,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
         do {
 //            Optional<State> optional = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic() + s1.getList_of_visited_nodes().size(), s2.getHeuristic() + s2.getList_of_visited_nodes().size()));
-            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + (s.getList_of_visited_nodes().size())));
+            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + (s.getList_of_visited_nodes().size() + seen.size())));
             if (optionalState.isPresent()) {
 
                 State current_state = optionalState.get();
@@ -64,11 +63,11 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
                 q.remove(current_state);
 
-                LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
-                seen.add(current_state);
-//                q.addAll(successors);
-                q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
-
+                if (not_contains(seen, current_state)) {
+                    LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
+                    seen.add(current_state);
+                    q.addAll(successors);
+                }
             } else {
                 throw new IllegalStateException("Unexpectedly, no state remains");
             }
@@ -85,27 +84,36 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         q.add(initial_state);
 
         HashSet<State> seen = new HashSet<>();
-
         State best_choice = null;
-        State current_state;
 
         do {
-            current_state = q.removeFirst();
+            State current_state = q.removeFirst();
             cont++;
 
             if (current_state.is_final_state()) {
                 best_choice = current_state;
             }
 
-            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
-            seen.add(best_choice);
-
-            q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
+            if (not_contains(seen, current_state)) {
+                LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
+                seen.add(current_state);
+                q.addAll(successors);
+            }
 
         } while (!q.isEmpty() && best_choice == null);
-        System.out.println("->   " + cont + " states");
+
+//        System.out.println("-> Solution found after " + cont + " states");
 
         return best_choice;
+    }
+
+    private static boolean not_contains(HashSet<State> seen, State state) {
+        for (State s_state : seen) {
+            if (s_state.is_equivalent(state)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public List<State> get_next_states(State initial_state) {
@@ -131,6 +139,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         if (action.getAction().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
             capacity = capacity + action.getTask().weight;
+
         } else { //PICKUP
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
@@ -144,10 +153,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
     }
 
     private Plan get_plan(State state, Vehicle vehicle) {
-
-        Plan plan = new Plan(vehicle.getCurrentCity());
-
         Topology.City current_city = vehicle.getCurrentCity();
+        Plan plan = new Plan(current_city);
 
         for (DeliberativeAction action : state.getList_of_visited_nodes()) {
 
@@ -159,6 +166,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
             if (action.getAction().equals(ActionStates.DELIVER)) {
                 plan.appendDelivery(action.getTask());
+
             } else { // PICKUP
                 plan.appendPickup(action.getTask());
             }
@@ -171,7 +179,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
 
-        State best_option = null;
+        State best_option;
 
         switch (algorithm) {
             case ASTAR:
