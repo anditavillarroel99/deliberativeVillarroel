@@ -1,5 +1,6 @@
 package deliberative.villarroel_a;
 
+import deliberative.IA.Decision;
 import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology;
@@ -18,7 +19,8 @@ public class State {
     private double vehicle_capacity;
     private double heuristic;
 
-    public State() {}
+    public State() {
+    }
 
     public Topology.City getCurrent_city() {
         return current_city;
@@ -83,6 +85,7 @@ public class State {
             state.vehicle_capacity = vehicle_capacity;
             state.heuristic = heuristic;
 
+            state.get_possible_actions();
             return this;
         }
 
@@ -103,4 +106,29 @@ public class State {
                 ", heuristic=" + heuristic +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        State state = (State) o;
+        return Double.compare(state.vehicle_capacity, vehicle_capacity) == 0 &&
+                Double.compare(state.heuristic, heuristic) == 0 &&
+                current_city.equals(state.current_city) &&
+                delivery_list.equals(state.delivery_list) &&
+                pickup_list.equals(state.pickup_list) &&
+                list_of_visited_nodes.equals(state.list_of_visited_nodes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(current_city, delivery_list, pickup_list, list_of_visited_nodes, vehicle_capacity, heuristic);
+    }
+
+    public boolean is_the_same_node(State state) {
+        return current_city.equals(state.getCurrent_city())
+                && list_of_visited_nodes.equals(state.getList_of_visited_nodes());
+    }
 }
+
+

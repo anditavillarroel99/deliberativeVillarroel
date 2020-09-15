@@ -1,5 +1,6 @@
 package deliberative.villarroel_a;
 
+import deliberative.IA.Decision;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
 import logist.plan.Plan;
@@ -34,7 +35,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         this.agent = agent;
 
         // initialize the planner
-        int capacity = agent.vehicles().get(0).capacity();
         String algorithmName = agent.readProperty("algorithm", String.class, "ASTAR");
 
         // Throws IllegalArgumentException if algorithm is unknown
@@ -44,26 +44,30 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
     private State a_star(State initial_state) {
         LinkedList<State> q = new LinkedList<>();
+        q.add(initial_state);
+
         HashSet<State> seen = new HashSet<>();
 
-        q.add(initial_state);
         State bestChoice = null;
 
         do {
 //            Optional<State> optional = q.stream().min((s1, s2) -> Double.compare(s1.getHeuristic() + s1.getList_of_visited_nodes().size(), s2.getHeuristic() + s2.getList_of_visited_nodes().size()));
-            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + s.getList_of_visited_nodes().size()));
-
+            Optional<State> optionalState = q.stream().min(Comparator.comparingDouble(s -> s.getHeuristic() + (s.getList_of_visited_nodes().size())));
             if (optionalState.isPresent()) {
-                State current_state = optionalState.get();
-                seen.add(current_state);
 
-                q.remove(current_state);
+                State current_state = optionalState.get();
+                q.removeIf(state -> !state.equals(current_state));
 
                 if (current_state.is_final_state()) {
                     bestChoice = current_state;
                 }
 
-                q.addAll(get_next_states(current_state).stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList())); // Expandir a los hijos
+                q.remove(current_state);
+
+                LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
+                seen.add(current_state);
+//                q.addAll(successors);
+                q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
 
             } else {
                 throw new IllegalStateException("Unexpectedly, no state remains");
@@ -73,31 +77,36 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         return bestChoice;
     }
 
-    private State bfs(State initial_state) {
-        LinkedList<State> q = new LinkedList<>();
-        HashSet<State> seen = new HashSet<>();
 
+    private State bfs(State initial_state) {
+        int cont = 0;
+
+        LinkedList<State> q = new LinkedList<>();
         q.add(initial_state);
 
+        HashSet<State> seen = new HashSet<>();
+
         State best_choice = null;
+        State current_state;
 
         do {
-            State current_state = q.removeFirst();
+            current_state = q.removeFirst();
+            cont++;
 
             if (current_state.is_final_state()) {
                 best_choice = current_state;
             }
 
+            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
             seen.add(best_choice);
 
-            LinkedList<State> successors = new LinkedList<>(get_next_states(current_state));
             q.addAll(successors.stream().filter(childState -> !seen.contains(childState)).collect(Collectors.toList()));
 
         } while (!q.isEmpty() && best_choice == null);
+        System.out.println("->   " + cont + " states");
 
         return best_choice;
     }
-
 
     public List<State> get_next_states(State initial_state) {
         List<State> next_states = new ArrayList<>();
@@ -109,18 +118,19 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         return next_states;
     }
 
-    private State get_next_state(State initial_state, DeliberativeAction action) {
-        TaskSet delivery_list = initial_state.getDelivery_list();
-        TaskSet pickup_list = initial_state.getPickup_list();
+    private State get_next_state(State state, DeliberativeAction action) {
 
-        double capacity = initial_state.getVehicle_capacity();
+        TaskSet delivery_list = state.getDelivery_list().clone();
+        TaskSet pickup_list = state.getPickup_list().clone();
 
-        List<DeliberativeAction> list_of_visited_nodes = initial_state.getList_of_visited_nodes();
+        double capacity = state.getVehicle_capacity();
+        List<DeliberativeAction> list_of_visited_nodes = new ArrayList<>(state.getList_of_visited_nodes());
+
+        State.Builder new_builder = State.builder();
 
         if (action.getAction().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
             capacity = capacity + action.getTask().weight;
-
         } else { //PICKUP
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
@@ -128,14 +138,16 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         }
 
         list_of_visited_nodes.add(action);
+        double heuristic = state.getHeuristic() + (state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());//+ action.getTask().reward;
 
-        double heuristic = initial_state.getHeuristic() + (initial_state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());
-        return (State.builder().new_state(action.getDestination_city(), delivery_list, pickup_list, list_of_visited_nodes, capacity, heuristic).build());
+        return (new_builder.new_state(action.getDestination_city(), delivery_list, pickup_list, list_of_visited_nodes, capacity, heuristic).build());
     }
 
-    private Plan get_plan(State state, Topology.City current_city) {
+    private Plan get_plan(State state, Vehicle vehicle) {
 
-        Plan plan = new Plan(current_city);
+        Plan plan = new Plan(vehicle.getCurrentCity());
+
+        Topology.City current_city = vehicle.getCurrentCity();
 
         for (DeliberativeAction action : state.getList_of_visited_nodes()) {
 
@@ -143,13 +155,13 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
                 plan.appendMove(city);
             }
 
+            current_city = action.getDestination_city();
+
             if (action.getAction().equals(ActionStates.DELIVER)) {
                 plan.appendDelivery(action.getTask());
             } else { // PICKUP
                 plan.appendPickup(action.getTask());
             }
-
-            current_city = action.getDestination_city();
         }
 
         return plan;
@@ -159,19 +171,19 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
     public Plan plan(Vehicle vehicle, TaskSet tasks) {
         Plan plan;
 
-        // Compute the plan with the selected algorithm.
-        State optimal_state = null;
+        State best_option = null;
+
         switch (algorithm) {
             case ASTAR:
                 System.out.println("-> ASTAR");
-                optimal_state = a_star(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(), 0).build());
-                plan = get_plan(optimal_state, vehicle.getCurrentCity());
+                best_option = a_star(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), agent.vehicles().get(0).capacity(), 0).build());
+                plan = get_plan(best_option, vehicle);
 
                 break;
             case BFS:
                 System.out.println("-> BFS");
-                optimal_state = bfs(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), vehicle.capacity(), 0).build());
-                plan = get_plan(optimal_state, vehicle.getCurrentCity());
+                best_option = bfs(State.builder().new_state(vehicle.getCurrentCity(), vehicle.getCurrentTasks(), tasks, new ArrayList<>(), agent.vehicles().get(0).capacity(), 0).build());
+                plan = get_plan(best_option, vehicle);
 
                 break;
             default:
