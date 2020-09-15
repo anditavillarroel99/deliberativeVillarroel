@@ -1,6 +1,5 @@
 package deliberative.villarroel_a;
 
-import deliberative.IA.GoAndDeliver;
 import logist.task.Task;
 import logist.topology.Topology;
 

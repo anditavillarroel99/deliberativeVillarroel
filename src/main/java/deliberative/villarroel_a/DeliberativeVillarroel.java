@@ -1,6 +1,5 @@
 package deliberative.villarroel_a;
 
-import deliberative.IA.Decision;
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
 import logist.plan.Plan;
