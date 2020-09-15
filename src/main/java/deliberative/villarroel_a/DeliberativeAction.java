@@ -3,6 +3,8 @@ package deliberative.villarroel_a;
 import logist.task.Task;
 import logist.topology.Topology;
 
+import java.util.Objects;
+
 public class DeliberativeAction {
 
     private final Topology.City destination_city;
@@ -34,5 +36,20 @@ public class DeliberativeAction {
                 ", action=" + action +
                 ", task=" + task +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DeliberativeAction action1 = (DeliberativeAction) o;
+        return Objects.equals(destination_city, action1.destination_city) &&
+                action == action1.action &&
+                Objects.equals(task, action1.task);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(destination_city, action, task);
     }
 }
