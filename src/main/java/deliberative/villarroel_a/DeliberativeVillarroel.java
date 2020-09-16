@@ -54,6 +54,8 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             if (optionalState.isPresent()) {
 
                 State current_state = optionalState.get();
+                System.out.println(current_state);
+
                 q.removeIf(state -> !state.equals(current_state));
 
                 if (current_state.is_final_state()) {
@@ -137,8 +139,9 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
         if (action.getAction().equals(ActionStates.DELIVER)) {
             delivery_list.remove(action.getTask());
-            capacity = capacity + action.getTask().weight;
-
+            if (agent.vehicles().get(0).capacity() >= capacity) {
+                capacity = capacity + action.getTask().weight;
+            }
         } else { //PICKUP
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
@@ -146,7 +149,10 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
         }
 
         list_of_visited_nodes.add(action);
-        double heuristic = state.getHeuristic() + (state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm());//+ action.getTask().reward;
+
+        double heuristic = state.getHeuristic()
+                + (state.getCurrent_city().distanceTo(action.getDestination_city()) * agent.vehicles().get(0).costPerKm())
+                + delivery_list.size() * 10 + pickup_list.size() * 10;//+ action.getTask().reward;
 
         return (new_builder.new_state(action.getDestination_city(), delivery_list, pickup_list, list_of_visited_nodes, capacity, heuristic).build());
     }
