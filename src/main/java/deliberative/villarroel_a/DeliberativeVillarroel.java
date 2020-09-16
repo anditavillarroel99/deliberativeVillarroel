@@ -54,7 +54,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             if (optionalState.isPresent()) {
 
                 State current_state = optionalState.get();
-                System.out.println(current_state);
+//                System.out.println(current_state);
 
                 q.removeIf(state -> !state.equals(current_state));
 
