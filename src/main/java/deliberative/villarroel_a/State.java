@@ -53,7 +53,7 @@ public class State {
         }
 
         for (Task task : pickup_list) {
-            if (task.weight <= getVehicle_capacity()) {
+            if (delivery_list.weightSum() + task.weight <= getVehicle_capacity() ) {
                 possible_action_list.add(new DeliberativeAction(task.pickupCity, ActionStates.PICKUP, task));
             }
         }
@@ -61,12 +61,12 @@ public class State {
         return possible_action_list;
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public double getHeuristic() {
         return heuristic;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static class Builder {

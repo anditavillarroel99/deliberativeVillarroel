@@ -25,7 +25,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
     /* the planning class */
     Algorithm algorithm;
 
-
     @Override
     public void setup(Topology topology, TaskDistribution taskDistribution, Agent agent) {
         this.topology = topology;
@@ -142,6 +141,7 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
             if (agent.vehicles().get(0).capacity() >= capacity) {
                 capacity = capacity + action.getTask().weight;
             }
+
         } else { //PICKUP
             delivery_list.add(action.getTask());
             pickup_list.remove(action.getTask());
@@ -205,7 +205,6 @@ public class DeliberativeVillarroel implements DeliberativeBehavior {
 
         return plan;
     }
-
 
     @Override
     public void planCancelled(TaskSet carriedTasks) {
