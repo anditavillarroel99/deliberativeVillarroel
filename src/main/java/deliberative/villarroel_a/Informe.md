@@ -28,3 +28,12 @@ Para la heurística, se tomó en cuenta, el valor la heurística del nodo padre 
 
 El algoritmo ASTAR busca el valor más pequeño de la lista de estados posibles; para ello, utiliza al patrón Comparator, y la herística más la cantidad de estados que se encuentran en el historial más el número de estados vistos.
 Como el algoritmo busca el valor pequeño posible, una vez escogido, se filtra la lista de estados para buscar el siguiente más óptimo 
+
+**_TAREAS ESPECÍFICAS_**
+
+    Implementación del agente deliberativo con los algoritmos: BFS y A*
+        El algoritmo A* es más óptimo y encuentra la mejor solución en el menor tiempo posible, puede procesar hasta más de 50 tareas y presenta en su mayoría un reward óptimo.
+        En cuanto al algoritmo de BFS, este es más lento de procesar, y en ocasiones, no encuentra las soluciones más óptimas que el agente random.
+ 
+        
+
